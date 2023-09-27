@@ -1,0 +1,62 @@
+---
+title: "P8105 HW 2"
+author: "Yuki Low yl5503"
+output: github_document
+---
+
+```{r, message = FALSE}
+library(tidyverse)
+library(haven)
+library(readxl)
+library(janitor)
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+```
+
+```{r, message = FALSE}
+pols_df = 
+  read_csv("./data/pols-month.csv") %>%
+  janitor::clean_names()
+
+
+pols_df <- pols_df %>% 
+  separate(
+    mon,
+    into = c('year', 'month', 'day'), 
+    sep = "-", 
+    remove = TRUE) %>% 
+  mutate(
+    month = month.abb[as.numeric(month)], 
+    president = case_when(prez_gop == 1 & prez_dem == 0 ~ "rep",
+                          prez_dem == 1 & prez_gop == 0 ~ "dem")) %>%
+    select(-prez_gop, -gov_gop, -day)
+
+```
+
+```{r}
+snp_df = 
+  read_csv("./data/snp.csv") %>%
+  janitor::clean_names()
+
+snp_df <- snp_df %>% 
+  separate(
+    date, 
+    into = c('month','day','year'),
+    sep = '/',
+    remove = TRUE) %>% 
+  mutate(
+    month = month.abb[as.numeric(month)],
+    year = str_c('20', year)) %>% 
+  select(-day) %>% 
+  select(year, month, close) %>% 
+
+```
+
+```{r}
+head(pols_df)
+head(snp_df)
+df <- merge(pols_df,snp_df)
+head(df)
+```

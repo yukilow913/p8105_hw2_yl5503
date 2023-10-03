@@ -15,69 +15,17 @@ library(tidyr)
 library(stringr)
 ```
 
-Question 1: 
-```{r, message = FALSE}
-pols_df = 
-  read_csv("./data/pols-month.csv") %>%
-  janitor::clean_names()
+***Problem 1***
 
+Mr Trash Wheel DF
 
-pols_df <- pols_df %>% 
-  separate(
-    mon,
-    into = c('year', 'month', 'day'), 
-    sep = "-", 
-    remove = TRUE) %>% 
-  mutate(
-    month = month.abb[as.numeric(month)], 
-    president = case_when(prez_gop == 1 & prez_dem == 0 ~ "rep",
-                          prez_dem == 1 & prez_gop == 0 ~ "dem")) %>%
-    select(-prez_gop, -gov_gop, -day)
-
-```
-
-```{r , message = FALSE}
-snp_df = 
-  read_csv("./data/snp.csv") %>%
-  janitor::clean_names()
-
-snp_df <- snp_df %>% 
-  separate(
-    date, 
-    into = c('month','day','year'),
-    sep = '/',
-    remove = TRUE) %>% 
-  mutate(
-    month = month.abb[as.numeric(month)]) %>%
-  select(-day) %>% 
-  select(year, month, close) %>% 
-  mutate(year = str_c("19", year))
-
-```
-
-```{r}
-df <- left_join(pols_df,snp_df)
-df <- df %>% 
-  mutate(year = as.double(year))
-```
-
-```{r, message = FALSE}
-unemploy_df = 
-  read_csv("./data/unemployment.csv") %>%
-  janitor::clean_names()
-
-unemploy_df <- unemploy_df %>% 
-  pivot_longer(cols = 2:13, names_to = "month", values_to = "unemployment") %>% 
-  mutate(month = str_to_title(month))
-
-head(unemploy_df)
-```
-
-```{r, message = FALSE}
-final_df <- left_join(df, unemploy_df)
-str(final_df)
-```
-
+1. Imported data frame 
+2. Cleaned column names 
+3. Delete NA values for dumpster column 
+4. Keep columns dumpster to homes_powered 
+5. Make sure that all rows of homes_powered column is evaluated using correct formula
+6. Add a name column that tells us which trash wheel
+7. Change year to a numeric variable
 ```{r, message = FALSE}
 mrtrashwheel_df = 
   read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
@@ -91,6 +39,19 @@ mrtrashwheel_df <-
   mutate(name = "Mr Trash Wheel") %>% 
   mutate(year = as.numeric(year))
 
+head(mrtrashwheel_df)
+```
+
+Professor Trash Wheel DF 
+
+1. Import data frame 
+2. Clean column names 
+3. Delete NA values for dumpster column 
+4. Make sure that all rows of homes_powered column is evaluated using correct formula
+5. Add a name column that tells us which trash wheel
+6. Change year to a numeric variable
+
+```{r}
 proftrashwheel_df = 
   read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
   janitor::clean_names()
@@ -102,33 +63,64 @@ proftrashwheel_df <-
   mutate(name = "Professor Trash Wheel") %>% 
   mutate(year = as.numeric(year))
 
-proftrashwheel_df
+head(proftrashwheel_df)
+```
 
+Gwynnda Trash Wheel DF 
+
+1. Import data frame 
+2. Clean column names 
+3. Delete NA values for dumpster column 
+4. Create a new column that is called grocery_bags that is a copy of plastic_bags 
+5. Select all columns besides plastic_bags
+6. Make sure that all rows of homes_powered column is evaluated using correct formula
+7. Add a name column that tells us which trash wheel
+
+```{r}
 gwynnda_df = 
   read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
   janitor::clean_names()
 
 gwynnda_df <- 
   gwynnda_df %>% 
+  drop_na(dumpster) %>% 
   mutate(grocery_bags = plastic_bags) %>% 
   select(!plastic_bags) %>% 
+  mutate(homes_powered = weight_tons * 500 / 30) %>% 
   mutate(name = "Gwynnda Trash Wheel")
 
-gwynnda_df
+head(gwynnda_df)
+```
 
+Combining all three trash wheel DF: 
+```{r}
 mr_and_prof <- bind_rows(mrtrashwheel_df, proftrashwheel_df)
 combined_df <- bind_rows(mr_and_prof, gwynnda_df)
 
-combined_df
+head(combined_df)
 ```
 
-The number of observations in the resulting dataset after merging the data from Mr. Trash Wheel, Professor Trash Wheel and Gwynnda Trash Wheel was `r nrow(combined_df)`. The number of variables from the resulting dataset was `r ncol(combined_df)`. This resulting dataset tells you the weight and volume of trash collected by one of the three trash wheels (either Mr. Trash Wheel, Professor Trash Wheel or Gwynnda Trash Wheel). It also tells us how much of each material was found (e.g. plastic bottles, polysterene, cigarette butts, etc.). The total weight of trash collected by Professor Trash Wheel was `r sum(proftrashwheel_df$weight_tons)` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 was `r sum(filter(gwynnda_df,year == "2021" & month == "July")$cigarette_butts)`
+The number of observations in the resulting dataset after merging the data from Mr. Trash Wheel, Professor Trash Wheel and Gwynnda Trash Wheel was $`r nrow(combined_df)`$. The number of variables from the resulting dataset was $`r ncol(combined_df)`$. This resulting dataset tells you the weight and volume of trash collected by one of the three trash wheels (either Mr. Trash Wheel, Professor Trash Wheel or Gwynnda Trash Wheel). It also tells us how much of each material was found (e.g. plastic bottles, polysterene, cigarette butts, etc.). The total weight of trash collected by Professor Trash Wheel was $`r sum(proftrashwheel_df$weight_tons)`$ tons. The total number of cigarette butts collected by Gwynnda in July of 2021 was $`r sum(filter(gwynnda_df,year == "2021" & month == "July")$cigarette_butts)`$.
 
-```{r}
+***Problem 2***
+
+Import Baseline DF 
+```{r, message = FALSE}
 baseline_df = 
   read_csv("./data/MCI_baseline.csv") %>%
   janitor::clean_names()
+```
 
+Cleaning Baseline DF 
+
+1. Delete first row (not data values)
+2. Change sex column to non-numerical 
+3. Change apoe carrier column to non-numerical
+4. Change all values that contain a single period to NA 
+5. Change column names 
+6. Convert all columns to appropriate variable types 
+
+```{r}
 baseline_df <- baseline_df %>% 
   slice(-1) %>%
   mutate(x1_male_0_female = ifelse(x1_male_0_female == "1", "male", "female")) %>% 
@@ -142,13 +134,14 @@ colnames(baseline_df) <- new_column_names
 baseline_df <- baseline_df %>% 
   mutate(sex = as.factor(sex), baseline_age = as.numeric(baseline_age), years_of_education = as.numeric(years_of_education), apoe_carrier = as.factor(apoe_carrier), onset_age = as.numeric(onset_age))
 
-baseline_df
-
-apoe_female_prop <- count(filter(baseline_df, sex == 'female' & apoe_carrier == 'yes')) / count(filter(baseline_df, sex == 'female'))
-
-
+head(baseline_df)
 ```
 
-`r nrow(baseline_df)` participants were recruited and `r count(filter(baseline_df,!is.na(onset_age)))` developed MCI. The mean baseline age is `r mean(baseline_df$baseline_age)` years. The proportion of women in the study who were APOE4 carriers is `r apoe_female_prop`
+Calculation for proportion of women in the study who were APOE4 carriers
+```{r}
+apoe_female_prop <- count(filter(baseline_df, sex == 'female' & apoe_carrier == 'yes')) / count(filter(baseline_df, sex == 'female'))
+```
+
+$`r nrow(baseline_df)`$ participants were recruited and $`r count(filter(baseline_df,!is.na(onset_age)))`$ developed MCI. The mean baseline age is $`r mean(baseline_df$baseline_age)`$ years. The proportion of women in the study who were APOE4 carriers is $`r apoe_female_prop`$. 
 
 

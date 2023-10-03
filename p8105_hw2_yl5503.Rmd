@@ -144,4 +144,47 @@ apoe_female_prop <- count(filter(baseline_df, sex == 'female' & apoe_carrier == 
 
 $`r nrow(baseline_df)`$ participants were recruited and $`r count(filter(baseline_df,!is.na(onset_age)))`$ developed MCI. The mean baseline age is $`r mean(baseline_df$baseline_age)`$ years. The proportion of women in the study who were APOE4 carriers is $`r apoe_female_prop`$. 
 
+```{r}
+amyloid_df = 
+  read_csv("./data/mci_amyloid.csv") %>%
+  janitor::clean_names() %>% 
+  slice(-1) %>% 
+  rename(baseline = time_in_years_elapsed_since_the_study_baseline_to_the_visit_where_biomarker_amyloid_42_40_ratio_was_measured, time_2 = na_3, time_4 = na_4, time_6 = na_5, time_8 = na_6, ID = study_id) %>%
+  pivot_longer(
+    baseline:time_8, 
+    names_to = "time",
+    values_to = "amyloid") %>% 
+  mutate(time = as.factor(time), amyloid = as.numeric(amyloid))
+```
+```{r}
+head(amyloid_df)
+```
+
+Similarly, import, clean, and tidy the dataset of longitudinally observed biomarker values; comment on the steps on the import process and the features of the dataset.
+
+Check whether some participants appear in only the baseline or amyloid datasets, and comment on your findings. Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and briefly describe the resulting dataset; export the result as a CSV to your data directory.
+
+```{r}
+unique_to_baseline <- baseline_df %>%
+  anti_join(amyloid_df, by = "ID")
+
+unique_to_baseline
+
+unique_to_amyloid <- amyloid_df %>%
+  anti_join(baseline_df, by = "ID")
+
+unique_to_amyloid
+```
+
+It can be seen that participant #'s 14,49, 92, 179, 268, 304, 389 and 412 were unique to the baseline dataset while participant #'s 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495 were unique to the amyloid dataset. 
+
+```{r}
+combined_b_a <- inner_join(baseline_df, amyloid_df, by = "ID")
+combined_b_a
+
+write.csv(combined_b_a, file = "combined_basline_and_amyloid.csv", row.names = FALSE)
+```
+
+
+
 

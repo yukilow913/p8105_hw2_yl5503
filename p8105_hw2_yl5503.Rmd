@@ -26,9 +26,10 @@ Mr Trash Wheel DF
 5. Make sure that all rows of homes_powered column is evaluated using correct formula
 6. Add a name column that tells us which trash wheel
 7. Change year to a numeric variable
+
 ```{r, message = FALSE}
 mrtrashwheel_df = 
-  read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
+  read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
   janitor::clean_names()
 
 mrtrashwheel_df <-
@@ -53,7 +54,7 @@ Professor Trash Wheel DF
 
 ```{r}
 proftrashwheel_df = 
-  read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
+  read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
   janitor::clean_names()
 
 proftrashwheel_df <- 
@@ -78,7 +79,7 @@ Gwynnda Trash Wheel DF
 
 ```{r}
 gwynnda_df = 
-  read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
+  read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
   janitor::clean_names()
 
 gwynnda_df <- 
@@ -144,7 +145,16 @@ apoe_female_prop <- count(filter(baseline_df, sex == 'female' & apoe_carrier == 
 
 $`r nrow(baseline_df)`$ participants were recruited and $`r count(filter(baseline_df,!is.na(onset_age)))`$ developed MCI. The mean baseline age is $`r mean(baseline_df$baseline_age)`$ years. The proportion of women in the study who were APOE4 carriers is $`r apoe_female_prop`$. 
 
-```{r}
+Cleaning Amyloid DF: 
+
+1. Import data frame 
+2. Delete first row (not data values)
+3. Rename column names to be more concise
+4. Change from wide format to long format 
+5. Change data types of time and amyloid variable
+
+
+```{r, warning= FALSE, message = FALSE}
 amyloid_df = 
   read_csv("./data/mci_amyloid.csv") %>%
   janitor::clean_names() %>% 
@@ -160,9 +170,7 @@ amyloid_df =
 head(amyloid_df)
 ```
 
-Similarly, import, clean, and tidy the dataset of longitudinally observed biomarker values; comment on the steps on the import process and the features of the dataset.
-
-Check whether some participants appear in only the baseline or amyloid datasets, and comment on your findings. Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and briefly describe the resulting dataset; export the result as a CSV to your data directory.
+The resulting dataframe after cleaning shows us the beta amyloid value at each given timepoint corresponding to a specific person. 
 
 ```{r}
 unique_to_baseline <- baseline_df %>%
@@ -176,14 +184,15 @@ unique_to_amyloid <- amyloid_df %>%
 unique_to_amyloid
 ```
 
-It can be seen that participant #'s 14,49, 92, 179, 268, 304, 389 and 412 were unique to the baseline dataset while participant #'s 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495 were unique to the amyloid dataset. 
+Using the anti_join function, we can see that participant #'s 14,49, 92, 179, 268, 304, 389 and 412 were unique to the baseline dataset while participant #'s 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495 were unique to the amyloid dataset. 
 
-```{r}
-combined_b_a <- inner_join(baseline_df, amyloid_df, by = "ID")
-combined_b_a
+```{r, message = FALSE, warning = FALSE}
+combined_b_a <- inner_join(baseline_df, amyloid_df, by = "ID", multiple = 'all')
 
 write.csv(combined_b_a, file = "combined_basline_and_amyloid.csv", row.names = FALSE)
 ```
+
+New combined dataframe was successfully saved into directory as a CSV file. The combined data frame is able to show us identifying information such as `ID`, `baseline_age`, `sex`, `years_of_education`, `apoe_carrier`, `onset_age` as well as `amyloid` values associated with the corresponding ID number and at which `time` point the value was collected at. 
 
 
 
